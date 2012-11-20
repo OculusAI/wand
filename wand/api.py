@@ -99,6 +99,41 @@ class MagickPixelPacket(ctypes.Structure):
                 ('opacity', ctypes.c_double),
                 ('index', ctypes.c_double)]
 
+class GeometryInfo(ctypes.Structure):
+    _fields_= [('rho', ctypes.c_double),
+               ('sigma', ctypes.c_double),
+               ('xi', ctypes.c_double),
+               ('psi', ctypes.c_double),
+               ('chi', ctypes.c_double)]
+
+class GeometryFlags:
+    NoValue= 0x0000
+    XValue= 0x0001
+    XiValue= 0x0001
+    YValue= 0x0002
+    PsiValue= 0x0002
+    WidthValue= 0x0004
+    RhoValue= 0x0004
+    HeightValue= 0x0008
+    SigmaValue= 0x0008
+    ChiValue= 0x0010
+    XiNegative= 0x0020
+    XNegative= 0x0020
+    PsiNegative= 0x0020
+    YNegative= 0x0040
+    ChiNegative= 0x0080
+    PercentValue= 0x1000
+    AspectValue= 0x2000
+    NormalizeValue= 0x2000
+    LessValue= 0x4000
+    GreaterValue= 0x8000
+    MinimumValue= 0x10000
+    CorrelateNormalizeValue= 0x10000
+    AreaValue= 0x20000
+    DecimalValue= 0x40000
+    SeparatorValue= 0x80000
+    AllValues= 0x7fffffff
+    
 
 try:
     libraries = load_library()
@@ -367,6 +402,15 @@ try:
 
     libmagick.GetMagickReleaseDate.argtypes = []
     libmagick.GetMagickReleaseDate.restype = ctypes.c_char_p
+
+    #
+    # Locally added to support Productify
+    #
+    library.MagickModulateImage.argtypes = [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double]
+    library.MagickLinearStretchImage.argtypes = [ctypes.c_void_p, ctypes.c_double, ctypes.c_double]
+    libmagick.ParseGeometry.argtypes= [ctypes.c_char_p, ctypes.c_void_p]
+    libmagick.ParseGeometry.restype= ctypes.c_int
+    
 except AttributeError:
     raise ImportError('MagickWand shared library not found or incompatible')
 

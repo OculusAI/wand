@@ -16,7 +16,7 @@ import numbers
 import types
 import weakref
 
-from .api import MagickPixelPacket, libc, libmagick, library
+from .api import MagickPixelPacket, libc, libmagick, library, GeometryInfo, GeometryFlags
 from .color import Color
 from .exceptions import WandException
 from .resource import DestroyedResourceError, Resource
@@ -1546,6 +1546,38 @@ class Image(Resource):
         result = library.MagickTrimImage(self.wand)
         if not result:
             self.raise_exception()
+
+    def modulate(self, brightness=100.0, saturation=100.0, hue=100.0):
+        """Modulates brightness, saturation and hue of the image.
+
+        :param brightness: brightness of image, 100 = keep as is
+        :type brightness: :class:`numbers.Real`
+        :param saturation: saturation of image, 100 = keep as is
+        :type saturation: :class:`numbers:Real`
+        :param hue: hue (color tone) of image, 100 = keep as is
+        :type hue: :class:`numbers.Real`
+        """
+        library.MagickModulateImage(self.wand, float(brightness), float(saturation), float(hue))
+
+    def linear_stretch(self, geometry):
+        """Stretches with saturation the image intensity.
+
+        :param geometry: Standard ImageMagick geometry
+        :type geometry: :class:`String`
+        """
+        geo= GeometryInfo()
+        flags= libmagick.ParseGeometry(geometry, ctypes.pointer(geo))
+        black_point= geo.rho
+        w, h= self.size
+        white_point= w*h
+        if flags & GeometryFlags.SigmaValue:
+            white_point= geo.sigma
+        if flags & GeometryFlags.PercentValue:
+            black_point*= w*h/100.0
+            white_point*= w*h/100.0
+        if (flags & GeometryFlags.PercentValue) == 0:
+            white_point= w*h-black_point
+        library.MagickLinearStretchImage(self.wand, float(black_point), float(white_point))
 
 class Iterator(Resource, collections.Iterator):
     """Row iterator for :class:`Image`. It shouldn't be instantiated
